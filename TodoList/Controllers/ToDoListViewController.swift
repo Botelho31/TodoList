@@ -24,7 +24,7 @@ class ToDoListViewController: UITableViewController{
     
     override func viewDidLoad() {
         super.viewDidLoad()
-//        searchBar.delegate = self
+        searchBar.delegate = self
         
         loadItems()
     }
@@ -34,7 +34,7 @@ class ToDoListViewController: UITableViewController{
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
         
-        cell.textLabel?.text = todoItems?[indexPath.row].title
+        cell.textLabel?.text = todoItems?[indexPath.row].title ?? "No Items in this Category"
         
         if let value = todoItems?[indexPath.row].done {
             if value{
@@ -81,6 +81,7 @@ class ToDoListViewController: UITableViewController{
                     try self.realm.write {
                         let textField = Item()
                         textField.title = newItem.text!
+                        textField.dateCreated = Date()
                         currentCategory.items.append(textField)
                         self.realm.add(textField)
                     }
@@ -116,13 +117,7 @@ extension ToDoListViewController: UISearchBarDelegate {
 
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         
-        let request: NSFetchRequest<Item> = Item.fetchRequest()
-
-        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
-
-        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-
-        loadItems(with: request,predicate: predicate)
+        todoItems = todoItems?.filter("title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "dateCreated", ascending: true)
         tableView.reloadData()
     }
 
@@ -135,6 +130,7 @@ extension ToDoListViewController: UISearchBarDelegate {
             }
         }
     }
+    
 
 }
 
